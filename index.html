@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+         simple_request
+         <br/>
+        <button id="simpleRequset">simple_request</button>
+    </div>
+    <br/>
+    <div>
+        preflight without credential
+        <br/>
+        <button id="preflight">preflight</button>
+
+        <button id="preflightNg1">preflight wrong method</button>
+
+        <button id="preflightNg2">preflight wrong header key</button>
+    </div>
+    <br/>
+
+    <div>
+        preflight width credential
+        <br/>
+        <button id="credential">credential</button>
+        <button id="credentialWrong">credential</button>
+    </div>
+
+   <br/>
+    <div>
+        sse(Server-Sent Event) EventSource EventStream
+        <br/>
+        <button id="sse">sse</button>
+    </div>
+
+    <div id="evnetCon"></div>
+
+    <br/>
+
+    <div>
+        fs 创建 BlockEntity
+        <br/>
+        <button id="BlockEntity">BlockEntity</button>
+    </div>
+
+
+    
+    <script>
+
+        let doMainApiURL='https://fndc-pdcektmgfu.cn-hangzhou.fcapp.run'
+        document.getElementById('simpleRequset').onclick = function(){
+            fetch(`${doMainApiURL}/cors/simple_request`)
+                .then((response) => response.json())
+                .then((data) => console.log(data));
+        }
+
+        document.getElementById('preflight').onclick = function(){
+            fetch(`${doMainApiURL}/cors/preflight`,{
+               headers:{
+                "Content-Type":"application/json"
+               } 
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data));
+        }
+
+
+        document.getElementById('preflightNg1').onclick = function(){
+            fetch(`${doMainApiURL}/cors/preflight`,{
+                method:'PUT',
+               headers:{
+                "Content-Type":"application/json"
+               } 
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data));
+        }
+
+        document.getElementById('preflightNg2').onclick = function(){
+            fetch(`${doMainApiURL}/cors/preflight`,{
+                method:'GET',
+               headers:{
+                "Content-Type":"application/json",
+                "worngkey":"worngValue"
+               } 
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data));
+        }
+
+
+        document.getElementById('credential').onclick = function(){
+            fetch(`${doMainApiURL}/cors/credential`,{
+                method:'GET',
+               headers:{
+                "Content-Type":"application/json",
+               },
+               credentials:'include' 
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data));
+        }
+
+        document.getElementById('credentialWrong').onclick = function(){
+            fetch(`${doMainApiURL}/cors/credential_wrong`,{
+                method:'GET',
+               headers:{
+                "Content-Type":"application/json",
+               },
+               credentials:'include' 
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data));
+        }
+
+
+          document.getElementById('BlockEntity').onclick = function(){
+            fetch(`${doMainApiURL}/createBlockEntity`,{
+                method:'GET',
+               headers:{
+                "Content-Type":"application/json",
+               },
+            })
+                .then((response) => response.json())
+                .then((data) => console.log(data));
+        }
+
+
+           
+        const evnetCon=  document.getElementById('evnetCon')
+        const CLOSE_MARK_MSG = "[DONE]";
+        document.getElementById('sse').onclick = function(){
+            evnetCon.innerHTML =''
+            let count = 0
+            // let timer =  setInterval(()=>{
+            //     if(count<5){
+            //         evnetCon.innerHTML += `<p>${count}:显示的内容</p>`
+            //         count+=1
+
+            //     }else{
+            //         clearInterval(timer)
+            //     }
+            // },2000)
+
+            const evtSource = new EventSource(`${doMainApiURL}/event/eventStream`);
+
+            evtSource.onopen = function(){
+                console.log("Connection to server opend")
+            }
+            evtSource.onmessage = (e)=>{
+
+                console.log("e=>",e.data)
+                // let {data} = e;
+                // data = JSON.parse(data)
+                // console.log("data.msg=>", data.msg)
+               
+                if(e.data == CLOSE_MARK_MSG){
+                    evtSource.close()
+                }else{
+                    const data = JSON.parse(e.data);
+                    const message = data.msg;
+                    evnetCon.innerHTML += `<p>${data.msg}</p>`
+                }
+                
+            }
+            evtSource.onerror = function(){
+                console.log('EventSource failed')
+            }
+
+            // fetch("https://fndc-pdcektmgfu.cn-hangzhou.fcapp.run/event/eventStream",{
+            //     method:'GET',
+            //    headers:{
+            //     "Content-Type":"application/json",
+            //    },
+
+            // })
+            //     .then((response) => response.json())
+            //     .then((data) => console.log(data));
+
+
+
+
+        }
+    </script>
+</body>
+
+</html>
